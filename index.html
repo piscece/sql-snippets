@@ -1,0 +1,1114 @@
+<title>SQL Snippets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+
+<style>
+/* ── Dark-first: terminal/SQL aesthetic ── */
+:root {
+  --bg:        #0d1117;
+  --surface:   #161b22;
+  --surface2:  #1c2128;
+  --border:    #30363d;
+  --border2:   #21262d;
+  --fg:        #e6edf3;
+  --fg2:       #8b949e;
+  --fg3:       #484f58;
+  --accent:    #58a6ff;
+  --accent-dim:#1f3a5c;
+  --green:     #3fb950;
+  --green-dim: #1a3a22;
+  --yellow:    #d29922;
+  --yellow-dim:#2d2008;
+  --red:       #f85149;
+  --red-dim:   #3d1a19;
+  --code-bg:   #0d1117;
+  color-scheme: dark;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-ui:   'Inter', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:        #f6f8fa;
+    --surface:   #ffffff;
+    --surface2:  #f0f3f6;
+    --border:    #d0d7de;
+    --border2:   #e6eaef;
+    --fg:        #1f2328;
+    --fg2:       #656d76;
+    --fg3:       #bbc0c6;
+    --accent:    #0969da;
+    --accent-dim:#dbeafe;
+    --green:     #1a7f37;
+    --green-dim: #d1fae5;
+    --yellow:    #9a6700;
+    --yellow-dim:#fef9c3;
+    --red:       #cf222e;
+    --red-dim:   #fee2e2;
+    --code-bg:   #f6f8fa;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg:        #f6f8fa;
+  --surface:   #ffffff;
+  --surface2:  #f0f3f6;
+  --border:    #d0d7de;
+  --border2:   #e6eaef;
+  --fg:        #1f2328;
+  --fg2:       #656d76;
+  --fg3:       #bbc0c6;
+  --accent:    #0969da;
+  --accent-dim:#dbeafe;
+  --green:     #1a7f37;
+  --green-dim: #d1fae5;
+  --yellow:    #9a6700;
+  --yellow-dim:#fef9c3;
+  --red:       #cf222e;
+  --red-dim:   #fee2e2;
+  --code-bg:   #f6f8fa;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 20px;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.header-left h1 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 2px;
+  letter-spacing: 0.02em;
+}
+
+.header-left .sub {
+  font-size: 0.78rem;
+  color: var(--fg2);
+  font-family: var(--font-mono);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface2); border-color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { opacity: 0.88; background: var(--accent); }
+
+.btn-danger { color: var(--red); border-color: var(--red-dim); }
+.btn-danger:hover { background: var(--red-dim); }
+
+.btn-sm { padding: 4px 9px; font-size: 0.75rem; }
+
+/* ── Search + filter bar ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg3);
+  pointer-events: none;
+}
+
+#search {
+  width: 100%;
+  padding: 8px 10px 8px 34px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+}
+#search:focus { outline: none; border-color: var(--accent); }
+#search::placeholder { color: var(--fg3); }
+
+#type-filter {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-width: 110px;
+}
+#type-filter:focus { outline: none; border-color: var(--accent); }
+
+/* ── Result count ── */
+.result-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg2);
+  margin-bottom: 12px;
+}
+
+/* ── Snippet cards ── */
+.snippet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.snippet-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.12s;
+}
+.snippet-card:hover { border-color: var(--border); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.type-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.type-SELECT  { background: var(--accent-dim); color: var(--accent); }
+.type-UPDATE  { background: var(--yellow-dim); color: var(--yellow); }
+.type-INSERT  { background: var(--green-dim);  color: var(--green); }
+.type-DELETE  { background: var(--red-dim);    color: var(--red); }
+.type-GET     { background: var(--accent-dim); color: var(--accent); }
+.type-ADD     { background: var(--green-dim);  color: var(--green); }
+.type-other   { background: var(--surface2);   color: var(--fg2); }
+
+.card-title {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--fg);
+  min-width: 0;
+}
+
+.card-chevron {
+  color: var(--fg3);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.snippet-card.open .card-chevron { transform: rotate(90deg); }
+
+.card-body {
+  display: none;
+  border-top: 1px solid var(--border2);
+}
+.snippet-card.open .card-body { display: block; }
+
+.code-wrap {
+  position: relative;
+}
+
+pre {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--code-bg);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--fg);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--fg2);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.copy-btn:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+
+.card-footer {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border2);
+  background: var(--surface2);
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--fg2);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal-overlay[hidden] { display: none !important; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border2);
+}
+
+.modal-header h2 {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--fg2);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.modal-close:hover { background: var(--surface2); color: var(--fg); }
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fg2);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  padding: 8px 10px;
+}
+.field textarea {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus { outline: none; border-color: var(--accent); }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border2);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  z-index: 300;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Export bar ── */
+.export-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: var(--fg2);
+}
+
+.export-bar-btns { display: flex; gap: 8px; }
+</style>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h2 id="modal-title">New Snippet</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="m-type">Type</label>
+        <select id="m-type">
+          <option>SELECT</option>
+          <option>UPDATE</option>
+          <option>INSERT</option>
+          <option>DELETE</option>
+          <option>GET</option>
+          <option>ADD</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="m-desc">Description</label>
+        <input type="text" id="m-desc" placeholder="What does this snippet do?">
+      </div>
+      <div class="field">
+        <label for="m-sql">SQL / Syntax</label>
+        <textarea id="m-sql" placeholder="Paste your SQL here..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSnippet()">Save Snippet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>// SQL Snippets</h1>
+      <div class="sub" id="hdr-count"></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openModal()">+ New Snippet</button>
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <span>Back up or restore your snippets</span>
+    <div class="export-bar-btns">
+      <button class="btn btn-sm" onclick="exportSnippets()">⬇ Export</button>
+      <label class="btn btn-sm" style="cursor:pointer;">
+        ⬆ Import
+        <input type="file" accept=".json" onchange="importSnippets(event)" style="display:none;">
+      </label>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+      </svg>
+      <input type="search" id="search" placeholder="Search type, description, or SQL..." oninput="render()">
+    </div>
+    <select id="type-filter" onchange="render()">
+      <option value="">All types</option>
+      <option>SELECT</option>
+      <option>UPDATE</option>
+      <option>INSERT</option>
+      <option>DELETE</option>
+      <option>GET</option>
+      <option>ADD</option>
+    </select>
+  </div>
+
+  <div class="result-count" id="result-count"></div>
+  <div class="snippet-list" id="snippet-list"></div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────
+const DEFAULTS = [
+  { id: 1, type: 'INSERT', desc: 'Adding/Updating Logo', sql: `EXEC dbo.InsertOptionSetting
+    @name = N'CustomerCompanyNameLogoLink', -- nvarchar(255)
+    @value = N'file.png' -- nvarchar(255)` },
+  { id: 2, type: 'UPDATE', desc: 'Updating User Username', sql: `Update userprofiles set username='NewUserName' where userid= xx` },
+  { id: 3, type: 'UPDATE', desc: 'Enabling Progressive MFG', sql: `--EnableProgressiveManufacturing = false
+
+UPDATE OptionSettings
+SET Value = 'false'
+WHERE optionsettingid = 32` },
+  { id: 4, type: 'UPDATE', desc: 'Update Required Parts to be optional — Multiple Items with recipeid (also updates BOM)', sql: `-- Step 1: Search RecipePartId
+select * from RequiredParts as RP
+join RecipeBlocks as RB on RP.RecipeBlockId = RB.RecipeBlockId
+where recipeid=686
+
+-- Step 2: Execute
+UPDATE RequiredParts RP
+SET IsOptional = 1
+WHERE RP.RecipeBlockId IN (
+    SELECT RB.RecipeBlockId
+    FROM RecipeBlocks RB
+    WHERE RB.RecipeId = 246
+)
+AND RP.PartId IN (437, 422);` },
+  { id: 5, type: 'UPDATE', desc: 'Update Required Parts optional — alternate when above gives issues', sql: `select * from RequiredParts as RP
+join RecipeBlocks as RB on RP.RecipeBlockId = RB.RecipeBlockId
+where recipeid=160
+
+UPDATE RequiredParts
+SET IsOptional = 1
+WHERE RequiredPartId=835
+AND RecipeBlockId = 160` },
+  { id: 6, type: 'UPDATE', desc: 'Update Required Parts to optional — Multiple Items with MFG Batch Record ID', sql: `-- Step 1: Search to gather PartId
+select * FROM dbo.RequiredParts as RP
+join dbo.ManufacturedBatches ON ManufacturedBatches.RecipeBlockId = RP.RecipeBlockId
+WHERE BatchId=110037
+
+-- Step 2: Update
+UPDATE RP
+SET RP.IsOptional = 1
+FROM dbo.RequiredParts RP
+JOIN dbo.RecipeBlocks RB ON RB.RecipeBlockId = RP.RecipeBlockId
+JOIN dbo.ManufacturedBatches MB ON MB.RecipeId = RB.RecipeId
+WHERE MB.BatchId = 110037
+AND RP.PartId IN (663);` },
+  { id: 7, type: 'UPDATE', desc: 'Updating Tenant Timezone', sql: `USE SetPointMedical
+UPDATE dbo.TenantSettings
+SET TenantTimezone = 'Pacific Standard Time'
+
+USE sboxSetPointMedical
+UPDATE dbo.TenantSettings
+SET TenantTimezone = 'Pacific Standard Time'` },
+  { id: 8, type: 'INSERT', desc: 'Turning on Advanced Scheduling', sql: `exec InsertOptionSetting
+  @name = N'EnableAdvancedScheduling',
+  @value = N'true'` },
+  { id: 9, type: 'INSERT', desc: 'Turning on Picking', sql: `exec InsertOptionSetting
+  @name = N'EnableAdvancedScheduling',
+  @value = N'true'` },
+  { id: 10, type: 'INSERT', desc: 'Release a BOM without any required parts', sql: `exec InsertOptionSetting
+  @name = N'AllowReleaseBomWithoutRequiredParts',
+  @value = N'true'` },
+  { id: 11, type: 'DELETE', desc: 'Deleting ImportSalesOrders', sql: `DELETE FROM OptionSettings WHERE Name = 'ImportSalesOrders'` },
+  { id: 12, type: 'INSERT', desc: 'UOM in Description Removed', sql: `EXEC InsertOptionSetting
+  @name = N'IncludeUnitOfMeasureNameInDescription', -- nvarchar(255)
+  @value = N'false' -- nvarchar(255)` },
+  { id: 13, type: 'DELETE', desc: 'Deleting Equipment Services', sql: `-- Step 1: Verify
+SELECT * from Equipment e
+join equipmentservices es on e.equipmentid = es.EquipmentId
+where e.EquipmentId=3 and es.EquipmentServiceId IN (171,174)
+
+SELECT * FROM dbo.RecordedEquipmentMaintenanceIntervalAttributes
+WHERE EquipmentServiceId IN (171,174)
+
+-- Step 2: Delete child records first
+DELETE dbo.RecordedEquipmentMaintenanceIntervalAttributes
+WHERE EquipmentServiceId=171
+
+-- Step 3: Delete service
+delete EquipmentServices where EquipmentServiceId=171` },
+  { id: 14, type: 'UPDATE', desc: 'Updating Custom Date Format', sql: `EXEC InsertOptionSetting
+  @name = N'CustomDateFormat', -- nvarchar(255)
+  @value = N'MM/dd/yyyy h:mm tt' -- nvarchar(255)
+-- *Use C# format strings for date formats` },
+  { id: 15, type: 'UPDATE', desc: 'Update single Required Part to Optional', sql: `-- Step 1: Search RequiredPartId
+select * from RequiredParts as RP
+WHERE RP.RecipeBlockId IN (686)
+AND RP.PartId IN (2821);
+
+-- Step 2: Execute
+update RequiredParts
+set IsOptional = 1
+where RequiredPartId = 7457` },
+  { id: 16, type: 'DELETE', desc: 'Deleting a batch record with signatures', sql: `use ArtisanLabs
+
+-- Step 1: Find related approvals
+SELECT * FROM dbo.BatchApprovals AS BA
+INNER JOIN dbo.Approvals AS A ON A.ApprovalId = BA.ApprovalId
+INNER JOIN dbo.ApprovalSteps AS AST ON AST.ApprovalStepId = A.ApprovalStepId
+INNER JOIN dbo.Esignatures AS E ON E.ApprovalId = A.ApprovalId
+WHERE BA.BatchId = 29318
+
+-- Step 2: Delete Esignatures
+DELETE FROM dbo.Esignatures
+WHERE EsignatureId IN (6363, 6383);
+
+-- Step 3: Delete BatchApprovals
+DELETE FROM dbo.BatchApprovals
+WHERE ApprovalId IN (7635, 7691);
+
+-- Step 4: Delete Approvals
+DELETE FROM dbo.Approvals
+WHERE ApprovalId IN (7635, 7691)
+AND ApprovalStepId IN (3438, 3439);
+
+-- Step 5: Delete ApprovalSteps
+DELETE FROM dbo.ApprovalSteps
+WHERE ApprovalStepId IN (3438, 3439);
+
+-- Step 6: Clear MFG batch approval step
+UPDATE dbo.ManufacturedBatches
+SET ApprovalStepId = 0
+WHERE BatchId = 29318
+
+-- Note: delete batch approvals FIRST before approval steps` },
+  { id: 17, type: 'UPDATE', desc: 'Replacing a PartId in a MFG Record with another PartId', sql: `-- Step 1: Search for the specific part
+SELECT RequiredParts.*, parts.Name
+FROM dbo.ManufacturedBatches
+JOIN dbo.RecipeBlocks ON RecipeBlocks.RecipeId = ManufacturedBatches.RecipeId
+JOIN dbo.RequiredParts ON RequiredParts.RecipeBlockId = RecipeBlocks.RecipeBlockId
+JOIN dbo.Parts ON Parts.PartId = RequiredParts.PartId
+WHERE ManufacturedBatches.RecipeId = 10235
+AND RequiredParts.PartId = 2;
+
+-- Step 2: Replace PartId
+UPDATE RP SET RP.PartId = 176
+FROM dbo.RequiredParts RP
+JOIN dbo.RecipeBlocks RB ON RB.RecipeBlockId = RP.RecipeBlockId
+JOIN dbo.ManufacturedBatches MB ON MB.RecipeId = RB.RecipeId
+WHERE MB.RecipeId = 10235
+AND RP.PartId = 2;
+
+-- Step 3: Verify the change
+SELECT RequiredParts.*
+FROM dbo.ManufacturedBatches
+JOIN dbo.RecipeBlocks ON RecipeBlocks.RecipeId = ManufacturedBatches.RecipeId
+JOIN dbo.RequiredParts ON RequiredParts.RecipeBlockId = RecipeBlocks.RecipeBlockId
+WHERE ManufacturedBatches.RecipeId = 10235
+AND RequiredParts.PartId = 176;` },
+  { id: 18, type: 'DELETE', desc: 'Deleting Waves — requires WaveId #s', sql: `-- Step 1: Delete from PickEvents (deepest child)
+DELETE PE FROM dbo.PickEvents AS PE
+JOIN dbo.PickRequests AS PR ON PR.PickRequestId = PE.PickRequestId
+WHERE PR.WaveId IN (1393,1400,1408,1415,1416,1418,1426,1428,1429,1434,1435,1437)
+
+-- Step 2: Delete PickRequests
+DELETE FROM dbo.PickRequests
+WHERE WaveId IN (1393,1400,1408,1415,1416,1418,1426,1428,1429,1434,1435,1437)
+
+-- Step 3: Delete Waves
+DELETE FROM dbo.Waves
+WHERE WaveId IN (1393,1400,1408,1415,1416,1418,1426,1428,1429,1434,1435,1437)` },
+  { id: 19, type: 'ADD', desc: 'Add user from one site to another (prod to sbox)', sql: `-- Step 1: Search for UserId in prod, copy password hash
+use UsPharma
+select * from UserProfiles as UP where up.UserName='duane.haughton@uspharmaltd.com'
+select * from webpages_Membership as WM where userid=87
+
+-- Step 2: Insert into sbox
+USE sboxuspharma
+DECLARE @userId INT
+INSERT INTO UserProfiles (UserName, FirstName, LastName, Email, Phone, Title, IsDeleted, IsExternal)
+VALUES (
+  N'duane.haughton@uspharmaltd.com',
+  N'Duane',
+  N'Haughton',
+  N'duane.haughton@uspharmaltd.com',
+  N'',
+  N'Team Lead',
+  0, 0
+)
+SELECT @userId = SCOPE_IDENTITY()
+
+INSERT INTO webpages_Membership (UserId, CreateDate, ConfirmationToken, IsConfirmed,
+  LastPasswordFailureDate, PasswordFailuresSinceLastSuccess, Password,
+  PasswordChangedDate, PasswordSalt, PasswordVerificationToken, PasswordVerificationTokenExpirationDate)
+VALUES (
+  @userId, GETDATE(), N'', 1, NULL, 0,
+  N'AE56eaPjDulLGi5wvuDSnKRDKbqCQqL8ehFGGHDBSFy5NOzfMva4xKmR+xj9XupTtQ==',
+  GETDATE(), N'', N'', NULL
+)` },
+  { id: 20, type: 'GET', desc: 'Looks for all valid-to-sign manufacturing records', sql: `SELECT MBA.ApprovalId, B.BatchId, B.PartId
+INTO #Approvals
+FROM ManufacturedBatchApprovals MBA WITH (NOLOCK)
+    INNER JOIN Approvals A WITH (NOLOCK) ON A.ApprovalId = MBA.ApprovalId
+    INNER JOIN Batches B WITH (NOLOCK) ON MBA.BatchId = B.BatchId
+    INNER JOIN ManufacturedBatches MB WITH (NOLOCK) ON MBA.BatchId = MB.BatchId
+    INNER JOIN Parts P WITH (NOLOCK) ON B.PartId = P.PartId
+WHERE MB.IsManufacturedBatchApprovalCompleted = 0
+  AND B.IsValid = 1
+  AND P.IsValid = 1
+  AND (
+    EXISTS (SELECT * FROM SubLots S WITH (NOLOCK) WHERE S.ParentBatchId = MBA.BatchId)
+    OR EXISTS (SELECT * FROM UtilizedTransactions UT WITH (NOLOCK) WHERE UT.ParentBatchId = MBA.BatchId)
+  );
+
+SELECT * FROM #Approvals AS A` },
+  { id: 21, type: 'UPDATE', desc: 'Add prefix to Location/Part/PartNumber (e.g. NCR in front of Location)', sql: `-- Step 1: Verify data
+SELECT * FROM dbo.Locations
+WHERE Abbreviation IN ('18001A','18001B','18001C','18001D','18001E', /* ... */);
+
+-- Step 2: Preview the change
+SELECT Abbreviation, 'NCR' + Abbreviation AS NewValue
+FROM dbo.Locations
+WHERE Abbreviation IN ('18001A','18001B', /* ... */);
+
+-- Step 3: Execute
+UPDATE dbo.Locations
+SET Abbreviation = 'NCR' + Abbreviation
+WHERE Abbreviation IN ('18001A','18001B', /* ... */);
+
+-- Variation: HOLD prefix
+UPDATE dbo.Locations
+SET Abbreviation = 'HOLD' + Abbreviation
+WHERE Abbreviation IN ('18012A','18012B','18012C','18012D','18012E')` },
+  { id: 22, type: 'SELECT', desc: 'Search packed items in shipment container', sql: `SELECT *
+FROM dbo.SalesOrders
+JOIN dbo.SalesOrderLines ON SalesOrderLines.SalesOrderId = SalesOrders.SalesOrderId
+JOIN dbo.Shipments ON Shipments.SalesOrderId = SalesOrders.SalesOrderId
+JOIN dbo.ShipmentContainers ON ShipmentContainers.ShipmentId = Shipments.ShipmentId
+JOIN dbo.ContainerContents ON ContainerContents.ShipmentContainerId = ShipmentContainers.ShipmentContainerId
+WHERE ShipmentContainers.ShipmentContainerId = 462;` },
+  { id: 23, type: 'INSERT', desc: 'Inserting roles with Cognito', sql: `use SteuartNutrition
+select * from UserProfiles where username like '%ilse%'
+
+-- Insert role (confirm values first)
+insert into webpages_usersInRoles (UserId, RoleId)
+values (53, 2)
+
+-- Confirm
+select * from webpages_usersInRoles where userid = 53
+
+SELECT * FROM dbo.UserProfiles
+JOIN dbo.webpages_usersInRoles ON webpages_usersInRoles.UserId = UserProfiles.UserId
+WHERE UserName LIKE '%ilse%'
+
+SELECT * FROM dbo.RequiredRoles
+
+UPDATE dbo.webpages_Roles SET RoleId=2` },
+  { id: 24, type: 'UPDATE', desc: 'Remove ERP Key from Shipment', sql: `USE [customer]
+
+SELECT * FROM Shipments AS S
+WHERE S.SalesOrderId = [SOID]
+
+UPDATE Shipments
+SET ErpKey = NULL
+WHERE ShipmentId = [shipmentid]` },
+  { id: 25, type: 'SELECT', desc: 'Search for what procedure is linked to in Report Manager', sql: `-- Step 1: Find query by proc name
+SELECT * FROM StoredQueries SQ WITH (NOLOCK)
+WHERE SQ.Query LIKE '%spAuditRecord_Custom%';
+
+-- Step 2: Find report by QueryId
+SELECT * FROM ReportQueries WITH (NOLOCK)
+WHERE QueryId = 80;` },
+  { id: 26, type: 'SELECT', desc: 'Search when a stored procedure was last updated/created', sql: `SELECT
+    s.name           AS customer_schema,
+    p.name           AS procedure_name,
+    p.create_date,
+    p.modify_date,
+    DATEDIFF(DAY, p.modify_date, GETDATE()) AS days_since_modified,
+    LEN(m.definition) AS definition_length,
+    m.definition      AS proc_body
+FROM sys.procedures p
+JOIN sys.schemas    s ON p.schema_id = s.schema_id
+JOIN sys.sql_modules m ON p.object_id = m.object_id
+WHERE DATEDIFF(DAY, p.modify_date, GETDATE()) < 44
+ORDER BY p.name, s.name;` },
+  { id: 27, type: 'SELECT', desc: 'Search procedure name, raw length, normalized length', sql: `SELECT
+    s.name AS customer_schema,
+    p.name AS procedure_name,
+    LEN(m.definition) AS raw_length,
+    LEN(
+        REPLACE(REPLACE(REPLACE(REPLACE(m.definition,' ',''),CHAR(13),''),CHAR(10),''),CHAR(9),'')
+    ) AS normalized_length,
+    m.definition AS proc_body_raw,
+    REPLACE(REPLACE(REPLACE(REPLACE(m.definition,' ',''),CHAR(13),''),CHAR(10),''),CHAR(9),'')
+        AS proc_body_normalized
+FROM sys.procedures p
+JOIN sys.schemas s ON p.schema_id = s.schema_id
+JOIN sys.sql_modules m ON p.object_id = m.object_id
+ORDER BY procedure_name;` },
+  { id: 28, type: 'DELETE', desc: 'Delete Material Reservation from MFG', sql: `select * from MaterialReservations as MR
+where MR.ManufacturedBatchId=984942
+
+delete from MaterialReservations
+where MaterialReservationId IN (48666, 48695)` },
+  { id: 29, type: 'UPDATE', desc: 'Changing UOM — only works for QB or no-ERP customers', sql: `-- Used to change Units of Measure when set incorrectly in a multi-UOM world.
+-- Updates quantities on POs, SOs, Transactions, BOMs, Shipments, etc.
+-- IMPORTANT: Set USE clause, @NewUOMSetId, @StockingUnitQuantityConversion, @PartId
+
+USE [CustomerNameGoesHere]
+
+DROP TABLE IF EXISTS #PartstoUpdate
+DROP TABLE IF EXISTS #RequiredPartsUsedToMakePartId
+
+DECLARE @NewUOMSetId INT = 5                              -- IMPORTANT
+DECLARE @StockingUnitQuantityConversion DECIMAL(24,12) = 1 -- IMPORTANT: multiplied by all Quantity fields
+DECLARE @PartId INT = 5854
+
+SELECT * FROM UnitOfMeasureSets     -- verify UOM ID
+SELECT * FROM UnitsOfMeasure AS UOM
+
+SELECT vP.PartId INTO #PartstoUpdate
+FROM Parts AS vP
+WHERE vP.PartId IN (@PartId) -- plug PartIds here for multiples
+
+-- Update Parts table
+UPDATE Parts
+SET StockingUnitOfMeasureId = (SELECT UOMS.BaseUnitId FROM UnitOfMeasureSets AS UOMS WHERE UOMS.UnitOfMeasureSetId = @NewUOMSetId),
+    UnitOfMeasureSetId = @NewUOMSetId,
+    BaseConversionId = (
+        SELECT USC.UnitSetConversionId FROM UnitOfMeasureSets AS UOMS
+        INNER JOIN UnitSetConversions AS USC ON USC.UnitOfMeasureId = UOMS.BaseUnitId
+            AND USC.UnitOfMeasureSetId = UOMS.UnitOfMeasureSetId
+        WHERE UOMS.UnitOfMeasureSetId = @NewUOMSetId AND USC.Multiplier = 1)
+WHERE PartId IN (SELECT PU.PartId FROM #PartstoUpdate AS PU)
+
+-- Update Batches, RequiredParts, MFG Batches, SalesOrderLines, PurchaseOrderLines follow same pattern...` }
+];
+
+let snippets = [];
+let editingId = null;
+let nextId = 100;
+
+function load() {
+  try {
+    const saved = localStorage.getItem('sql_snippets_v2');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      snippets = parsed.snippets || DEFAULTS;
+      nextId = parsed.nextId || 100;
+    } else {
+      snippets = [...DEFAULTS];
+      nextId = 100;
+    }
+  } catch(e) {
+    snippets = [...DEFAULTS];
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem('sql_snippets_v2', JSON.stringify({ snippets, nextId }));
+  } catch(e) {}
+}
+
+function getBadgeClass(type) {
+  const t = (type||'').toUpperCase();
+  const map = { SELECT:'SELECT', UPDATE:'UPDATE', INSERT:'INSERT', DELETE:'DELETE', GET:'GET', ADD:'ADD' };
+  return 'type-' + (map[t] || 'other');
+}
+
+function render() {
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  const tf = (document.getElementById('type-filter').value || '').toUpperCase();
+
+  const filtered = snippets.filter(s => {
+    const matchType = !tf || s.type.toUpperCase() === tf;
+    const matchQ = !q ||
+      s.desc.toLowerCase().includes(q) ||
+      s.type.toLowerCase().includes(q) ||
+      s.sql.toLowerCase().includes(q);
+    return matchType && matchQ;
+  });
+
+  document.getElementById('hdr-count').textContent = `${snippets.length} snippets`;
+  document.getElementById('result-count').textContent =
+    q || tf ? `${filtered.length} of ${snippets.length} snippets` : `${snippets.length} snippets`;
+
+  const list = document.getElementById('snippet-list');
+  list.innerHTML = '';
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">No snippets match your search.</div>';
+    return;
+  }
+
+  filtered.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'snippet-card';
+    card.dataset.id = s.id;
+    card.innerHTML = `
+      <div class="card-header" onclick="toggleCard(${s.id})">
+        <span class="type-badge ${getBadgeClass(s.type)}">${s.type}</span>
+        <span class="card-title">${escHtml(s.desc)}</span>
+        <svg class="card-chevron" width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <div class="code-wrap">
+          <pre>${escHtml(s.sql)}</pre>
+          <button class="copy-btn" onclick="copySQL(event, ${s.id})">Copy</button>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-sm" onclick="editSnippet(${s.id})">✏ Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteSnippet(${s.id})">✕ Delete</button>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function toggleCard(id) {
+  const card = document.querySelector(`.snippet-card[data-id="${id}"]`);
+  if (card) card.classList.toggle('open');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function copySQL(e, id) {
+  e.stopPropagation();
+  const s = snippets.find(x => x.id === id);
+  if (!s) return;
+  const btn = e.currentTarget;
+  navigator.clipboard.writeText(s.sql).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  }).catch(() => {
+    const pre = btn.previousElementSibling;
+    const range = document.createRange();
+    range.selectNodeContents(pre);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function openModal(id) {
+  editingId = id || null;
+  const modal = document.getElementById('modal');
+  const title = document.getElementById('modal-title');
+  if (id) {
+    const s = snippets.find(x => x.id === id);
+    title.textContent = 'Edit Snippet';
+    document.getElementById('m-type').value = s.type;
+    document.getElementById('m-desc').value = s.desc;
+    document.getElementById('m-sql').value = s.sql;
+  } else {
+    title.textContent = 'New Snippet';
+    document.getElementById('m-type').value = 'SELECT';
+    document.getElementById('m-desc').value = '';
+    document.getElementById('m-sql').value = '';
+  }
+  modal.hidden = false;
+  document.getElementById('m-desc').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').hidden = true;
+  editingId = null;
+}
+
+function saveSnippet() {
+  const type = document.getElementById('m-type').value.trim();
+  const desc = document.getElementById('m-desc').value.trim();
+  const sql  = document.getElementById('m-sql').value.trim();
+  if (!desc || !sql) { showToast('Description and SQL are required.', true); return; }
+
+  if (editingId) {
+    const s = snippets.find(x => x.id === editingId);
+    if (s) { s.type = type; s.desc = desc; s.sql = sql; }
+  } else {
+    snippets.unshift({ id: nextId++, type, desc, sql });
+  }
+  save();
+  closeModal();
+  render();
+  showToast(editingId ? 'Snippet updated.' : 'Snippet saved.');
+}
+
+function editSnippet(id) { openModal(id); }
+
+function deleteSnippet(id) {
+  const s = snippets.find(x => x.id === id);
+  if (!s) return;
+  // inline confirm instead of alert()
+  const card = document.querySelector(`.snippet-card[data-id="${id}"]`);
+  const footer = card.querySelector('.card-footer');
+  footer.innerHTML = `<span style="color:var(--red);font-size:0.8rem;flex:1">Delete "${escHtml(s.desc)}"?</span>
+    <button class="btn btn-sm btn-danger" onclick="confirmDelete(${id})">Yes, delete</button>
+    <button class="btn btn-sm" onclick="render()">Cancel</button>`;
+}
+
+function confirmDelete(id) {
+  snippets = snippets.filter(x => x.id !== id);
+  save();
+  render();
+  showToast('Snippet deleted.');
+}
+
+function exportSnippets() {
+  const json = JSON.stringify({ snippets, nextId }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'sql-snippets.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Exported sql-snippets.json');
+}
+
+function importSnippets(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.snippets || !Array.isArray(data.snippets)) throw new Error();
+      // Merge: add any snippet whose desc+type combo doesn't already exist
+      let added = 0;
+      data.snippets.forEach(incoming => {
+        const exists = snippets.some(s => s.desc === incoming.desc && s.type === incoming.type);
+        if (!exists) { snippets.push({ ...incoming, id: nextId++ }); added++; }
+      });
+      save(); render();
+      showToast(`Imported ${added} new snippet${added !== 1 ? 's' : ''}.`);
+    } catch {
+      showToast('Invalid file - make sure you are importing a sql-snippets export.', true);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+let toastTimer;
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'var(--red)' : 'var(--green)';
+  t.style.color = isError ? 'var(--red)' : 'var(--green)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+load();
+render();
+</script>
